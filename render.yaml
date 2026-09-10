@@ -1,0 +1,55 @@
+# StayEase — Render free-stack blueprint ($0).
+#
+#   API:      this file (Render Web Service, Free, Docker)
+#   Postgres: Neon free (create at https://neon.tech, permanent, not Render's 30-day DB)
+#   MongoDB:  Atlas M0 free (create at https://cloud.mongodb.com, 512MB forever)
+#
+# Usage:
+#   1. Push this repo to GitHub.
+#   2. Render Dashboard -> New -> Blueprint -> select repo (render.yaml auto-detected).
+#   3. Fill DATABASE_URL (Neon pooled URL) + MONGODB_URL (Atlas mongodb+srv://...) when prompted.
+#   4. Deploy. Tables are created automatically via preDeployCommand.
+#   5. Test: https://<your-service>.onrender.com/health and /health/ready
+#
+# Free-tier notes:
+#   - Web service sleeps after 15min idle, ~1min cold start. Normal on free.
+#   - Neon sleeps after 5min idle, wakes on connect. Atlas M0 pauses after 30d idle.
+#   - Atlas Network Access must allow 0.0.0.0/0 (Render IPs are dynamic).
+
+services:
+  - type: web
+    name: stayease-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    # Creates the 7 tables idempotently on every deploy (never drops data).
+    preDeployCommand: python -m app.database.init_db
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "30"
+      # Paste the Neon pooled connection string, e.g.
+      # postgresql://user:pass@ep-xxx.neon.tech/stayease_db?sslmode=require
+      # The app auto-converts it to postgresql+psycopg:// for SQLAlchemy.
+      - key: DATABASE_URL
+        sync: false
+      # Paste the Atlas string, e.g.
+      # mongodb+srv://user:pass@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+      - key: MONGODB_URL
+        sync: false
+      - key: MONGODB_DATABASE
+        value: stayease_db
+      # Auto-generated strong secret on first deploy. Never commit it.
+      - key: SECRET_KEY
+        generateValue: true
+      # Set to your frontend origin(s) after deploy, e.g. https://myapp.vercel.app
+      # Empty = no browser cross-origin access (Swagger same-origin still works).
+      - key: CORS_ORIGINS
+        value: ""

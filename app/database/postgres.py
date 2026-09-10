@@ -10,8 +10,22 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 from app.config import settings
 
+
+def _normalize_database_url(url: str) -> str:
+    """Accept hosted Postgres URLs (Neon/Render/Supabase) as-is.
+
+    Neon and Render give ``postgresql://...`` or ``postgres://...``.
+    SQLAlchemy + psycopg3 needs ``postgresql+psycopg://...``.
+    """
+    if url.startswith("postgres://"):
+        return "postgresql+psycopg://" + url[len("postgres://") :]
+    if url.startswith("postgresql://"):
+        return "postgresql+psycopg://" + url[len("postgresql://") :]
+    return url
+
+
 # Re-exported for backwards compatibility (import from app.config instead).
-DATABASE_URL = settings.database_url
+DATABASE_URL = _normalize_database_url(settings.database_url)
 
 # Engine: manages the pool of connections to PostgreSQL.
 # ``pool_pre_ping=True`` drops dead connections before use.

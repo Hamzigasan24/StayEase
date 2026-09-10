@@ -26,5 +26,6 @@ USER appuser
 
 EXPOSE 8000
 
-# App reads APP_ENV/DEBUG/DATABASE_URL/... from the environment.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Render (and most PaaS) injects a dynamic $PORT. Respect it, default to 8000 locally.
+# Shell form is required so ${PORT} expands at runtime.
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
