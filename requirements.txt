@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy
+psycopg==3.2.10
+psycopg-binary==3.2.10
+python-jose[cryptography]
+pwdlib[argon2]
+email-validator
+pymongo
+pytest
+pytest-cov
+pydantic-settings

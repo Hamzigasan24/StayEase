@@ -1,0 +1,15 @@
+# Never bake secrets, caches, tests or VCS data into the image.
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+tests/
+scripts/
